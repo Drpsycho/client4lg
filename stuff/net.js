@@ -50,7 +50,7 @@ function wsinit() {
             // for (var _item = 0; _item < msg.Data.length; _item++) {
             // removeItem(msg.Data[_item].Id);
             // }
-            removeItem(msg.Data.Id);
+            removeItem(msg.Data.Id, msg.Name);
         }
 
     };

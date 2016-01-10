@@ -103,12 +103,10 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', {
 
 
 function preload() {
-    game.load.image('phaser', '../phaser-examples/examples/assets/sprites/phaser-dude.png');
-    game.load.spritesheet('veggies', '../phaser-examples/examples/assets/sprites/fruitnveg32wh37.png', 32, 32);
-
-    game.load.image('background', '../phaser-examples/examples/assets/tests/debug-grid-1920x1920.png');
-    game.load.image('player', '../phaser-examples/examples/assets/sprites/phaser-dude.png');
-
+    game.load.image('mushroom', './stuff/sprites/mushroom2.png');
+    game.load.spritesheet('veggies', './stuff/sprites/fruitnveg32wh37.png', 32, 32);
+    game.load.tilemap('mapa', './stuff/sprites/map.json', null, Phaser.Tilemap.TILED_JSON);
+    game.load.image('ground_1x1', './stuff/sprites/ground_1x1.png');
 }
 
 var player;
@@ -120,16 +118,31 @@ var myName;
 
 var delta_x = 0;
 var delta_y = 0;
+var score = 0;
+var text;
 
 function create() {
+    map = game.add.tilemap('mapa');
+    map.addTilesetImage('ground_1x1');
 
-    game.world.setBounds(0, 0, 1960, 1960);
+    layer = map.createLayer('Tile Layer 1');
+    layer.resizeWorld();
+
+    // game.world.setBounds(0, 0, 2000, 2000);
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.time.advancedTiming = true;
     game.stage.backgroundColor = '#2d2d2d';
     cursors = game.input.keyboard.createCursorKeys();
-    addPlayer(makeid(), 200, 200);
+    addPlayer(makeid(), 100, 100);
 
+    var style = {
+        font: "20px Courier",
+        fill: "#fff",
+        tabs: 132
+    };
+    text = game.add.text(800 - 120, 50, "Score: " + score, style);
+    text.fixedToCamera = true;
+    text.cameraOffset.setTo(800 - 120, 50);
     game.camera.follow(player);
     wsinit();
 }
@@ -163,16 +176,17 @@ function update() {
 
 function addPlayer(_name, _x, _y) {
 
-    var temp = game.add.sprite(_x, _y, 'phaser');
+    var temp = game.add.sprite(_x, _y, 'mushroom');
+    temp.scale.setTo(0.5, 0.5);
     temp.MyName = _name;
     console.log("name " + temp.MyName)
     game.physics.arcade.enable(temp);
     temp.body.allowGravity = false;
-    delta_x = _x;
-    delta_y = _y;
     players.push(temp);
 
     if (typeof player === "undefined") {
+        delta_x = _x;
+        delta_y = _y;
         player = players[0];
     }
 }
@@ -189,19 +203,26 @@ function removePlayer(_name) {
 function setLocation(_name, _x, _y) {
     players.forEach(function(item, i, arr) {
         if (item.MyName == _name) {
-            tween = game.add.tween(item).to({x: _x, y: _y }, 2, Phaser.Easing.Linear.None, true);
+            tween = game.add.tween(item).to({
+                x: _x,
+                y: _y
+            }, 2, Phaser.Easing.Linear.None, true);
             if (player.MyName == _name) {
                 tween.onComplete.add(function() {
                     flag = true;
                     delta_x = _x;
                     delta_y = _y;
-                    }, this);
+                }, this);
             }
         }
     });
 }
 
-function removeItem(_id) {
+function removeItem(_id, _name) {
+    if (_name == player.MyName) {
+        score += 1;
+        text.setText("Score: " + score);
+    }
     items.forEach(function(item, i, arr) {
         if (item.custom_id == _id) {
             item.kill();
@@ -217,7 +238,7 @@ function addItem(_x, _y, _item, _id) {
 
 
 function render() {
-    game.debug.text("fps " + game.time.fps || '--', 32, 14);
-    game.debug.cameraInfo(game.camera, 32, 32);
-    game.debug.spriteCoords(player, 32, 500);
+    // game.debug.text("fps " + game.time.fps || '--', 32, 14);
+    // game.debug.cameraInfo(game.camera, 32, 32);
+    // game.debug.spriteCoords(player, 32, 500);
 }
